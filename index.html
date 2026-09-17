@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive performance enablement lifecycle prototype" />
+    <title>Northstar Performance Enablement</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="#overview" data-nav="overview" aria-label="Northstar home">
+          <span class="brand-mark"><i data-lucide="sparkles"></i></span>
+          <span><strong>Northstar</strong><small>Performance enablement</small></span>
+        </a>
+
+        <div class="role-control">
+          <label for="roleSelect">Viewing as</label>
+          <div class="select-wrap">
+            <i data-lucide="users"></i>
+            <select id="roleSelect" aria-label="Choose role">
+              <option value="hr">HR Business Partner</option>
+              <option value="manager">People Manager</option>
+              <option value="employee">Employee</option>
+            </select>
+            <i data-lucide="chevron-down"></i>
+          </div>
+        </div>
+
+        <nav id="mainNav" class="main-nav"></nav>
+
+        <div class="sidebar-support">
+          <div class="support-icon"><i data-lucide="lightbulb"></i></div>
+          <strong>Enable better conversations</strong>
+          <p>Turn every review into clear growth actions.</p>
+          <button class="text-button" data-action="open-guide">View cycle guide <i data-lucide="arrow-up-right"></i></button>
+        </div>
+
+        <div class="signed-in">
+          <span class="avatar avatar-photo alex"></span>
+          <span><strong>Alex Morgan</strong><small>HR Business Partner</small></span>
+          <button class="icon-button" title="Account options"><i data-lucide="more-horizontal"></i></button>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <button class="icon-button mobile-menu" id="mobileMenu" title="Open navigation"><i data-lucide="menu"></i></button>
+          <div class="crumbs"><span>People</span><i data-lucide="chevron-right"></i><strong id="pageCrumb">Overview</strong></div>
+          <div class="topbar-actions">
+            <div class="cycle-chip"><span class="live-dot"></span>FY26 Annual Review</div>
+            <button class="icon-button" title="Search"><i data-lucide="search"></i></button>
+            <button class="icon-button notification-button" title="Notifications"><i data-lucide="bell"></i><span>3</span></button>
+            <button id="globalLaunchButton" class="button primary compact" data-action="launch-cycle"><i data-lucide="rocket"></i> Launch cycle</button>
+          </div>
+        </header>
+
+        <main id="app" tabindex="-1"></main>
+      </section>
+    </div>
+
+    <div id="modalRoot"></div>
+    <div id="toastRoot" aria-live="polite"></div>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
