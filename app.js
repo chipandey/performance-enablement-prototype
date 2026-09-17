@@ -3,6 +3,7 @@ const state = {
   view: "overview",
   selectedEmployee: "priya",
   insightTab: "goals",
+  talentTab: "bell",
   peopleQuery: "",
   launched: false,
   approved: new Set(),
@@ -22,19 +23,21 @@ const navByRole = {
     ["overview", "layout-dashboard", "Overview"],
     ["cycles", "repeat-2", "Review cycles", "3"],
     ["people", "users-round", "People & calibration", "12"],
+    ["talent", "chart-scatter", "Talent insights"],
     ["actions", "badge-dollar-sign", "Actions & rewards"],
     ["approvals", "git-pull-request-arrow", "Approvals", "4"],
   ],
   manager: [
     ["overview", "layout-dashboard", "Team overview"],
     ["people", "users-round", "My team", "8"],
+    ["talent", "chart-scatter", "Team talent insights"],
     ["actions", "list-checks", "Team recommendations"],
     ["approvals", "git-pull-request-arrow", "My approvals", "2"],
   ],
   employee: [
     ["overview", "layout-dashboard", "My performance"],
-    ["people", "history", "Performance history"],
-    ["actions", "sprout", "Goals & development"],
+    ["history", "history", "Performance history"],
+    ["development", "sprout", "Goals & development"],
   ],
 };
 
@@ -64,8 +67,9 @@ function pageHeading(eyebrow, title, description, actions = "") {
   </header>`;
 }
 
-function statCard(label, value, note, glyph, tone) {
-  return `<article class="card stat-card">
+function statCard(label, value, note, glyph, tone, visualization = "") {
+  const drilldown = visualization ? ` data-action="open-visualization" data-viz="${visualization}" role="button" tabindex="0"` : "";
+  return `<article class="card stat-card${visualization ? " drilldown-card" : ""}"${drilldown}>
     <div class="stat-top"><span>${label}</span><span class="stat-icon ${tone}">${icon(glyph)}</span></div>
     <div class="stat-value">${value}</div><div class="stat-delta">${note}</div>
   </article>`;
@@ -84,20 +88,20 @@ function overviewScreen() {
   return `
     ${pageHeading(
       manager ? "Your team" : "FY26 annual review",
-      manager ? "Good morning, Alex" : "Performance at a glance",
+      manager ? "Good morning, Jordan" : "Performance at a glance",
       manager ? "Keep every conversation moving and turn review signals into meaningful action." : "Track cycle progress, intervene early, and move talent decisions forward with confidence.",
       `<button class="button" data-action="send-nudges">${icon("send")} Send nudges</button><button class="button primary" data-nav="people">${icon("users")} ${manager ? "Review my team" : "Open calibration"}</button>`
     )}
     <section class="stats-grid">
-      ${statCard(manager ? "Team reviews" : "Employees scheduled", manager ? "8" : "248", `<strong>100%</strong> auto-enrolled`, "calendar-check", "green")}
-      ${statCard("Completed", manager ? "3" : "159", `<strong>+18%</strong> since last week`, "circle-check-big", "blue")}
-      ${statCard("Pending action", manager ? "5" : "67", manager ? "2 due this week" : "27 awaiting managers", "clock-3", "amber")}
-      ${statCard("At-risk flags", manager ? "2" : "12", "Requires timely follow-up", "triangle-alert", "coral")}
+      ${statCard(manager ? "Team reviews" : "Employees scheduled", manager ? "8" : "248", `<strong>100%</strong> auto-enrolled`, "calendar-check", "green", "scheduled")}
+      ${statCard("Completed", manager ? "3" : "159", `<strong>+18%</strong> since last week`, "circle-check-big", "blue", "completed")}
+      ${statCard("Pending action", manager ? "5" : "67", manager ? "2 due this week" : "27 awaiting managers", "clock-3", "amber", "pending")}
+      ${statCard("At-risk flags", manager ? "2" : "12", "Requires timely follow-up", "triangle-alert", "coral", "risk")}
     </section>
     <section class="dashboard-grid">
       <div class="stack">
-        <article class="card">
-          <div class="section-header"><div><h2>Cycle health</h2><p>FY26 Annual Review · 01 Sep – 15 Nov</p></div><button class="section-link" data-nav="cycles">View cycle</button></div>
+        <article class="card drilldown-card" data-action="open-visualization" data-viz="cycle" role="button" tabindex="0">
+          <div class="section-header"><div><h2>Cycle health</h2><p>FY26 Annual Review · 01 Sep – 15 Nov</p></div><button class="section-link" data-action="open-visualization" data-viz="cycle">Explore data</button></div>
           <div class="cycle-health">
             <div class="donut-wrap"><div class="donut"></div><div class="donut-label"><strong>64%</strong><span>159 of 248</span></div></div>
             <div>
@@ -110,7 +114,7 @@ function overviewScreen() {
             </div>
           </div>
         </article>
-        <article class="card">
+        <article class="card drilldown-card" data-action="open-visualization" data-viz="departments" role="button" tabindex="0">
           <div class="section-header"><div><h2>${manager ? "Team review continuum" : "Departments needing attention"}</h2><p>Ordered by action urgency</p></div><button class="section-link" data-nav="people">View all</button></div>
           <div class="table-wrap"><table><thead><tr><th>${manager ? "Employee" : "Team"}</th><th>Progress</th><th>Pending</th><th>Due</th></tr></thead><tbody>
             ${(manager ? employees.slice(0,4).map(e => `<tr data-employee="${e.id}"><td>${personCell(e)}</td><td><div class="progress-track"><span style="width:${Math.round(e.rating/5*100)}%"></span></div></td><td><span class="badge ${e.statusTone}">${e.status}</span></td><td>${e.risk ? "2 days" : "8 days"}</td></tr>`).join("") : `
@@ -121,13 +125,13 @@ function overviewScreen() {
         </article>
       </div>
       <aside class="stack">
-        <article class="card">
+        <article class="card drilldown-card" data-action="open-visualization" data-viz="signals" role="button" tabindex="0">
           <div class="section-header"><div><h2>Signals to act on</h2><p>AI-assisted, manager-reviewed</p></div><span class="badge coral">3 urgent</span></div>
           <div class="risk-row" data-employee="sofia"><span class="risk-symbol">${icon("trending-down")}</span><span><strong>Performance shift</strong><small>Sofia Martinez · rating trend down 0.9</small></span><span class="score">3.1</span></div>
           <div class="risk-row" data-employee="priya"><span class="risk-symbol amber">${icon("graduation-cap")}</span><span><strong>Skill gap blocks growth</strong><small>Priya Nair · strategic finance</small></span><span class="badge amber">Gap</span></div>
           <div class="risk-row" data-employee="omar"><span class="risk-symbol">${icon("message-square-warning")}</span><span><strong>Feedback pattern</strong><small>Omar Haddad · 3 similar comments</small></span><span class="badge coral">At risk</span></div>
         </article>
-        <article class="card">
+        <article class="card drilldown-card" data-action="open-visualization" data-viz="decisions" role="button" tabindex="0">
           <div class="section-header"><div><h2>Decision queue</h2><p>Post-appraisal recommendations</p></div><button class="section-link" data-nav="approvals">Open</button></div>
           <div class="risk-row"><span class="risk-symbol amber">${icon("award")}</span><span><strong>4 promotions</strong><small>2 awaiting HR · $31K impact</small></span>${icon("chevron-right")}</div>
           <div class="risk-row"><span class="risk-symbol amber">${icon("circle-dollar-sign")}</span><span><strong>18 salary changes</strong><small>Within allocated budget</small></span>${icon("chevron-right")}</div>
@@ -229,11 +233,25 @@ function approvalsScreen() {
     }).join("")}</section>`;
 }
 
+function talentInsightsScreen() {
+  const manager = state.role === "manager";
+  const tabs = [["bell", "bar-chart-3", "Bell curve"], ["ninebox", "grid-3x3", "9-box matrix"], ["succession", "route", "Succession"]];
+  const bellCurve = `<div class="talent-summary"><div><span>Population</span><strong>${manager ? "8" : "248"}</strong><small>${manager ? "Direct reports" : "Eligible employees"}</small></div><div><span>Average rating</span><strong>3.7</strong><small>+0.2 vs FY25</small></div><div><span>Outside guideline</span><strong>${manager ? "2" : "21"}</strong><small>Requires calibration</small></div></div><div class="histogram" aria-label="Rating distribution"><div class="histogram-column"><span style="height:18%"></span><strong>${manager ? 1 : 12}</strong><small>1 · Needs support</small></div><div class="histogram-column"><span style="height:35%"></span><strong>${manager ? 1 : 31}</strong><small>2 · Developing</small></div><div class="histogram-column target"><span style="height:88%"></span><strong>${manager ? 3 : 112}</strong><small>3 · Meets</small></div><div class="histogram-column"><span style="height:68%"></span><strong>${manager ? 2 : 72}</strong><small>4 · Exceeds</small></div><div class="histogram-column"><span style="height:32%"></span><strong>${manager ? 1 : 21}</strong><small>5 · Exceptional</small></div></div><div class="chart-note">${icon("info")} Guideline: 60–70% of ratings in “Meets”, with evidence review required at either end.</div>`;
+  const nineBox = `<div class="matrix-wrap"><div class="matrix-axis y-axis">Potential ${icon("arrow-up")}</div><div class="nine-box"><div class="matrix-cell accent"><strong>Growth talent</strong><span class="people-chip">Elena</span><small>${manager ? "1 person" : "28 people"}</small></div><div class="matrix-cell strong"><strong>High potential</strong><span class="people-chip">Daniel</span><small>${manager ? "1 person" : "19 people"}</small></div><div class="matrix-cell standout"><strong>Future leader</strong><span class="people-chip">Priya</span><small>${manager ? "1 person" : "12 people"}</small></div><div class="matrix-cell"><strong>Emerging</strong><small>${manager ? "1 person" : "36 people"}</small></div><div class="matrix-cell"><strong>Core contributor</strong><span class="people-chip">Marcus</span><small>${manager ? "2 people" : "84 people"}</small></div><div class="matrix-cell strong"><strong>High impact</strong><small>${manager ? "1 person" : "31 people"}</small></div><div class="matrix-cell watch"><strong>Reassess fit</strong><span class="people-chip">Omar</span><small>${manager ? "1 person" : "9 people"}</small></div><div class="matrix-cell"><strong>Steady</strong><small>${manager ? "0 people" : "20 people"}</small></div><div class="matrix-cell accent"><strong>Trusted expert</strong><small>${manager ? "0 people" : "9 people"}</small></div></div><div class="matrix-axis x-axis">Performance ${icon("arrow-right")}</div></div>`;
+  const succession = `<div class="talent-summary"><div><span>Critical roles</span><strong>${manager ? "3" : "26"}</strong><small>In current scope</small></div><div><span>Coverage</span><strong>73%</strong><small>+11% vs last cycle</small></div><div><span>Ready now</span><strong>${manager ? "2" : "18"}</strong><small>Named successors</small></div></div><div class="succession-list"><div class="succession-row"><div><strong>VP, Product</strong><small>Critical role · Incumbent: Jordan Lee</small></div><div class="successor-pipeline"><span class="avatar avatar-photo priya"></span><span><strong>Priya Nair</strong><small>Ready 1–2 years</small></span></div><span class="badge amber">1 successor</span></div><div class="succession-row"><div><strong>Engineering Director</strong><small>Critical role · Incumbent: Taylor Chen</small></div><div class="successor-pipeline"><span class="avatar avatar-photo daniel"></span><span><strong>Daniel Kim</strong><small>Ready now</small></span></div><span class="badge green">2 successors</span></div><div class="succession-row"><div><strong>Customer Success Director</strong><small>Critical role · Vacancy risk: medium</small></div><div class="successor-pipeline"><span class="avatar avatar-photo sofia"></span><span><strong>Sofia Martinez</strong><small>Ready 3+ years</small></span></div><span class="badge coral">Coverage risk</span></div></div>`;
+  const content = { bell: bellCurve, ninebox: nineBox, succession }[state.talentTab];
+  return `${pageHeading(manager ? "Team talent planning" : "Organization talent planning", "Talent insights", "Explore calibrated performance distribution, potential, and succession coverage in one decision workspace.", `<button class="button">${icon("download")} Export view</button><button class="button primary" data-nav="people">${icon("users")} Open calibration</button>`)}<article class="card talent-workspace"><div class="insight-tabs">${tabs.map(([id, glyph, label]) => `<button class="tab ${state.talentTab === id ? "active" : ""}" data-talent-tab="${id}">${icon(glyph)} ${label}</button>`).join("")}</div><div class="talent-panel">${content}</div></article>`;
+}
+
+function employeeHistoryScreen() {
+  return `${pageHeading("My record", "Performance history", "Review your finalized outcomes and growth themes. Manager-only calibration and reward data stays private.")}<section class="dashboard-grid"><article class="card"><div class="section-header"><div><h2>Three-year performance record</h2><p>Finalized performance outcomes</p></div><span class="badge green">Employee visible</span></div><div class="history"><div class="history-row"><strong>FY25</strong><div class="history-bar"><span style="width:84%"></span></div><strong>4.2</strong></div><div class="history-row"><strong>FY24</strong><div class="history-bar"><span style="width:86%"></span></div><strong>4.3</strong></div><div class="history-row"><strong>FY23</strong><div class="history-bar"><span style="width:78%"></span></div><strong>3.9</strong></div></div></article><aside class="card"><div class="section-header"><div><h2>Growth themes</h2><p>Across manager and peer feedback</p></div></div><div class="tab-panel"><blockquote class="quote">Consistent strength in product strategy and customer insight.<cite>FY25 finalized review</cite></blockquote><blockquote class="quote">Next growth edge: strategic finance and broader organizational leadership.<cite>Three-year trend</cite></blockquote></div></aside></section>`;
+}
+
 function employeeDashboard() {
   return `
-    <section class="card employee-hero"><div><p class="eyebrow" style="color:var(--lime)">My FY26 review</p><h1>Your year, your growth, one clear story.</h1><p>Bring your achievements, feedback, and goals together before your manager conversation on 28 September.</p><button class="button lime" data-action="self-review">Continue self assessment ${icon("arrow-right")}</button></div><div class="employee-progress"><div class="progress-meta"><strong>Review progress</strong><span>3 of 5 steps complete</span></div><div class="progress-track"><span style="width:60%"></span></div></div></section>
-    <section class="employee-grid"><div class="stack"><article class="card"><div class="section-header"><div><h2>Your performance story</h2><p>Evidence collected across this review</p></div><button class="section-link" data-action="self-review">Edit evidence</button></div><div class="metric-grid"><div class="metric"><span>Goals achieved</span><strong>94%</strong><small>4 of 5 complete</small></div><div class="metric"><span>Feedback</span><strong>12</strong><small>Peers & partners</small></div><div class="metric"><span>Skills grown</span><strong>4</strong><small>2 validated</small></div><div class="metric"><span>Recognition</span><strong>8</strong><small>Moments this year</small></div></div></article><article class="card"><div class="section-header"><div><h2>Three-year performance record</h2><p>Your historical record stays visible to you</p></div><button class="section-link" data-employee="priya">Full details</button></div><div class="history"><div class="history-row"><strong>FY25</strong><div class="history-bar"><span style="width:84%"></span></div><strong>4.2</strong></div><div class="history-row"><strong>FY24</strong><div class="history-bar"><span style="width:86%"></span></div><strong>4.3</strong></div><div class="history-row"><strong>FY23</strong><div class="history-bar"><span style="width:78%"></span></div><strong>3.9</strong></div></div></article></div>
-    <aside class="stack"><article class="card"><div class="section-header"><div><h2>What happens next</h2><p>Your review timeline</p></div></div><div class="timeline"><div class="timeline-item"><span class="timeline-dot">${icon("check")}</span><strong>Goals & evidence</strong><p>Completed 12 Sep</p></div><div class="timeline-item"><span class="timeline-dot">${icon("check")}</span><strong>Peer feedback</strong><p>12 responses received</p></div><div class="timeline-item"><span class="timeline-dot">${icon("pencil")}</span><strong>Self assessment</strong><p>Due 20 Sep · 80% complete</p></div><div class="timeline-item upcoming"><span class="timeline-dot">${icon("circle")}</span><strong>Manager conversation</strong><p>Scheduled 28 Sep, 10:00 AM</p></div><div class="timeline-item upcoming"><span class="timeline-dot">${icon("circle")}</span><strong>Outcome shared</strong><p>Expected 18 Nov</p></div></div></article></aside></section>`;
+    <section class="card employee-hero drilldown-card" data-action="open-visualization" data-viz="employee-progress" role="button" tabindex="0"><div><p class="eyebrow" style="color:var(--lime)">My FY26 review</p><h1>Your year, your growth, one clear story.</h1><p>Bring your achievements, feedback, and goals together before your manager conversation on 28 September.</p><button class="button lime" data-action="self-review">Continue self assessment ${icon("arrow-right")}</button></div><div class="employee-progress"><div class="progress-meta"><strong>Review progress</strong><span>3 of 5 steps complete</span></div><div class="progress-track"><span style="width:60%"></span></div></div></section>
+    <section class="employee-grid"><div class="stack"><article class="card drilldown-card" data-action="open-visualization" data-viz="employee-evidence" role="button" tabindex="0"><div class="section-header"><div><h2>Your performance story</h2><p>Evidence collected across this review</p></div><button class="section-link" data-action="open-visualization" data-viz="employee-evidence">Explore</button></div><div class="metric-grid"><div class="metric"><span>Goals achieved</span><strong>94%</strong><small>4 of 5 complete</small></div><div class="metric"><span>Feedback</span><strong>12</strong><small>Peers & partners</small></div><div class="metric"><span>Skills grown</span><strong>4</strong><small>2 validated</small></div><div class="metric"><span>Recognition</span><strong>8</strong><small>Moments this year</small></div></div></article><article class="card drilldown-card" data-nav="history" role="button" tabindex="0"><div class="section-header"><div><h2>Three-year performance record</h2><p>Your historical record stays visible to you</p></div><button class="section-link" data-nav="history">Full details</button></div><div class="history"><div class="history-row"><strong>FY25</strong><div class="history-bar"><span style="width:84%"></span></div><strong>4.2</strong></div><div class="history-row"><strong>FY24</strong><div class="history-bar"><span style="width:86%"></span></div><strong>4.3</strong></div><div class="history-row"><strong>FY23</strong><div class="history-bar"><span style="width:78%"></span></div><strong>3.9</strong></div></div></article></div>
+    <aside class="stack"><article class="card drilldown-card" data-action="open-visualization" data-viz="employee-timeline" role="button" tabindex="0"><div class="section-header"><div><h2>What happens next</h2><p>Your review timeline</p></div><button class="section-link" data-action="open-visualization" data-viz="employee-timeline">View dates</button></div><div class="timeline"><div class="timeline-item"><span class="timeline-dot">${icon("check")}</span><strong>Goals & evidence</strong><p>Completed 12 Sep</p></div><div class="timeline-item"><span class="timeline-dot">${icon("check")}</span><strong>Peer feedback</strong><p>12 responses received</p></div><div class="timeline-item"><span class="timeline-dot">${icon("pencil")}</span><strong>Self assessment</strong><p>Due 20 Sep · 80% complete</p></div><div class="timeline-item upcoming"><span class="timeline-dot">${icon("circle")}</span><strong>Manager conversation</strong><p>Scheduled 28 Sep, 10:00 AM</p></div><div class="timeline-item upcoming"><span class="timeline-dot">${icon("circle")}</span><strong>Outcome shared</strong><p>Expected 18 Nov</p></div></div></article></aside></section>`;
 }
 
 function developmentScreen() {
@@ -241,12 +259,14 @@ function developmentScreen() {
 }
 
 function render() {
-  if (state.role === "employee" && state.view === "cycles") state.view = "overview";
+  const roleViews = new Set(navByRole[state.role].map(([id]) => id));
+  if (!roleViews.has(state.view) && !(state.view === "employee" && state.role !== "employee")) state.view = "overview";
   renderNav();
-  document.querySelector("#globalLaunchButton").hidden = state.role === "employee";
-  const views = { overview: overviewScreen, cycles: cyclesScreen, people: peopleScreen, employee: employeeDetailScreen, actions: actionsScreen, approvals: approvalsScreen };
+  document.querySelector("#globalLaunchButton").hidden = state.role !== "hr";
+  document.querySelector(".cycle-chip").lastChild.textContent = state.role === "employee" ? "My FY26 Review" : "FY26 Annual Review";
+  const views = { overview: overviewScreen, cycles: cyclesScreen, people: peopleScreen, employee: employeeDetailScreen, talent: talentInsightsScreen, actions: actionsScreen, approvals: approvalsScreen, history: employeeHistoryScreen, development: developmentScreen };
   app.innerHTML = `<div class="page-enter">${(views[state.view] || overviewScreen)()}</div>`;
-  const labels = { overview: state.role === "employee" ? "My performance" : "Overview", cycles: "Review cycles", people: "People & calibration", employee: "Appraisal details", actions: "Actions & rewards", approvals: "Approvals" };
+  const labels = { overview: state.role === "employee" ? "My performance" : "Overview", cycles: "Review cycles", people: state.role === "manager" ? "My team" : "People & calibration", employee: "Appraisal details", talent: "Talent insights", actions: "Actions & rewards", approvals: "Approvals", history: "Performance history", development: "Goals & development" };
   document.querySelector("#pageCrumb").textContent = labels[state.view];
   document.querySelector(".sidebar").classList.remove("open");
   refreshIcons();
@@ -266,6 +286,32 @@ function openCycleModal() {
   refreshIcons();
 }
 
+function visualizationBars(items) {
+  const max = Math.max(...items.map(item => item.value));
+  return `<div class="viz-bars">${items.map(item => `<div class="viz-row"><span>${item.label}</span><div class="viz-track"><i style="width:${Math.max(item.value / max * 100, 4)}%"></i></div><strong>${item.display || item.value}</strong></div>`).join("")}</div>`;
+}
+
+function openVisualizationModal(key) {
+  const manager = state.role === "manager";
+  const visualizations = {
+    scheduled: [manager ? "Team enrollment" : "Enrollment by function", "Every eligible employee is enrolled", visualizationBars(manager ? [{ label: "Product", value: 3 }, { label: "Engineering", value: 2 }, { label: "Design", value: 2 }, { label: "Operations", value: 1 }] : [{ label: "Engineering", value: 76 }, { label: "Sales", value: 58 }, { label: "Product", value: 52 }, { label: "Customer Success", value: 38 }, { label: "Finance", value: 24 }])],
+    completed: ["Completion velocity", "Weekly completed reviews", `<div class="mini-column-chart">${[["W1",24],["W2",39],["W3",57],["W4",83],["W5",112],["W6",159]].map(([label, value]) => `<div class="mini-column"><strong>${manager ? Math.max(1, Math.round(value / 35)) : value}</strong><i style="height:${value / 159 * 100}%"></i><span>${label}</span></div>`).join("")}</div>`],
+    pending: ["Pending actions", "Where work is waiting today", visualizationBars(manager ? [{ label: "Self assessment", value: 1 }, { label: "Manager review", value: 2 }, { label: "Calibration", value: 2 }] : [{ label: "Self assessment", value: 13 }, { label: "Manager review", value: 27 }, { label: "Calibration", value: 19 }, { label: "Acknowledgement", value: 8 }])],
+    risk: ["At-risk signals", "Explainable flags requiring human review", visualizationBars(manager ? [{ label: "Rating shift", value: 1 }, { label: "Feedback pattern", value: 1 }, { label: "Goal slippage", value: 0 }] : [{ label: "Rating shift", value: 5 }, { label: "Feedback pattern", value: 4 }, { label: "Goal slippage", value: 2 }, { label: "Skill gap", value: 1 }])],
+    cycle: ["Cycle stage funnel", "FY26 Annual Review progress", visualizationBars([{ label: "Enrolled", value: manager ? 8 : 248 }, { label: "Self assessment", value: manager ? 7 : 221 }, { label: "Manager review", value: manager ? 5 : 166 }, { label: "Calibration", value: manager ? 3 : 104 }, { label: "Complete", value: manager ? 3 : 159 }])],
+    departments: [manager ? "Team review progress" : "Completion by department", "Ordered by completion risk", visualizationBars(manager ? [{ label: "Complete", value: 3, display: "3" }, { label: "In review", value: 3, display: "3" }, { label: "Not started", value: 2, display: "2" }] : [{ label: "Product", value: 78, display: "78%" }, { label: "Engineering", value: 71, display: "71%" }, { label: "Finance", value: 69, display: "69%" }, { label: "Sales", value: 56, display: "56%" }, { label: "Customer Success", value: 48, display: "48%" }])],
+    signals: ["Signal distribution", "Patterns surfaced for manager review", visualizationBars(manager ? [{ label: "Performance shift", value: 1 }, { label: "Skill gap", value: 1 }] : [{ label: "Performance shift", value: 5 }, { label: "Feedback pattern", value: 4 }, { label: "Skill gap", value: 3 }])],
+    decisions: ["Decision pipeline", "Post-appraisal recommendations", visualizationBars(manager ? [{ label: "Promotion", value: 1 }, { label: "Salary change", value: 5 }, { label: "Succession", value: 2 }, { label: "Development", value: 3 }] : [{ label: "Promotion", value: 14 }, { label: "Salary change", value: 18 }, { label: "Succession", value: 6 }, { label: "Development", value: 31 }])],
+    "employee-progress": ["Review progress", "Your five-stage review journey", visualizationBars([{ label: "Goals & evidence", value: 100, display: "Done" }, { label: "Peer feedback", value: 100, display: "Done" }, { label: "Self assessment", value: 80, display: "80%" }, { label: "Manager conversation", value: 20, display: "28 Sep" }, { label: "Outcome", value: 5, display: "18 Nov" }])],
+    "employee-evidence": ["Performance evidence", "Your contribution mix this year", visualizationBars([{ label: "Goals achieved", value: 94, display: "94%" }, { label: "Peer feedback", value: 80, display: "12" }, { label: "Skills validated", value: 55, display: "4" }, { label: "Recognition", value: 68, display: "8" }])],
+    "employee-timeline": ["Review timeline", "Dates and remaining milestones", `<div class="timeline"><div class="timeline-item"><span class="timeline-dot">${icon("check")}</span><strong>Self assessment due</strong><p>20 September · 80% complete</p></div><div class="timeline-item upcoming"><span class="timeline-dot">${icon("calendar")}</span><strong>Manager conversation</strong><p>28 September · 10:00 AM</p></div><div class="timeline-item upcoming"><span class="timeline-dot">${icon("flag")}</span><strong>Outcome shared</strong><p>18 November</p></div></div>`],
+  };
+  const [title, subtitle, content] = visualizations[key] || visualizations.cycle;
+  const destination = key === "decisions" ? "approvals" : ["signals", "risk"].includes(key) ? "people" : ["scheduled", "completed", "pending", "cycle", "departments"].includes(key) ? (state.role === "hr" ? "cycles" : "people") : "talent";
+  document.querySelector("#modalRoot").innerHTML = `<div class="modal-backdrop" data-action="close-modal"><section class="modal visualization-modal" role="dialog" aria-modal="true" aria-labelledby="vizTitle"><div class="modal-header"><div><p class="eyebrow">Interactive detail</p><h2 id="vizTitle">${title}</h2><p>${subtitle}</p></div><button class="icon-button" data-action="close-modal" title="Close">${icon("x")}</button></div><div class="modal-body">${content}</div><div class="modal-footer"><button class="button" data-action="close-modal">Close</button>${state.role !== "employee" ? `<button class="button primary" data-nav="${destination}">Explore workspace ${icon("arrow-right")}</button>` : ""}</div></section></div>`;
+  refreshIcons();
+}
+
 function closeModal() {
   document.querySelector("#modalRoot").innerHTML = "";
 }
@@ -274,6 +320,7 @@ document.addEventListener("click", event => {
   const navTarget = event.target.closest("[data-nav]");
   if (navTarget) {
     event.preventDefault();
+    closeModal();
     state.view = navTarget.dataset.nav;
     render();
     app.focus();
@@ -292,11 +339,21 @@ document.addEventListener("click", event => {
     render();
     return;
   }
+  const talentTab = event.target.closest("[data-talent-tab]");
+  if (talentTab) {
+    state.talentTab = talentTab.dataset.talentTab;
+    render();
+    return;
+  }
   const actionTarget = event.target.closest("[data-action]");
   if (!actionTarget) return;
   const action = actionTarget.dataset.action;
   if (action === "launch-cycle") openCycleModal();
-  if (action === "close-modal") closeModal();
+  if (action === "open-visualization") openVisualizationModal(actionTarget.dataset.viz);
+  if (action === "close-modal") {
+    if (actionTarget.classList.contains("modal-backdrop") && event.target !== actionTarget) return;
+    closeModal();
+  }
   if (action === "confirm-launch") { state.launched = true; closeModal(); state.view = "cycles"; render(); showToast("Cycle scheduled and 186 employees auto-enrolled"); }
   if (action === "send-nudges") showToast("Personalized nudges sent to pending reviewers");
   if (action === "print") window.print();
@@ -320,11 +377,29 @@ document.addEventListener("input", event => {
   }
 });
 
+document.addEventListener("keydown", event => {
+  if ((event.key === "Enter" || event.key === " ") && event.target.matches('[role="button"][tabindex="0"]')) {
+    event.preventDefault();
+    event.target.click();
+  }
+});
+
 roleSelect.addEventListener("change", event => {
+  closeModal();
   state.role = event.target.value;
   state.view = "overview";
+  const identities = {
+    hr: { name: "Alex Morgan", title: "HR Business Partner", className: "avatar avatar-photo alex", initials: "" },
+    manager: { name: "Jordan Lee", title: "People Manager", className: "avatar", initials: "JL" },
+    employee: { name: "Priya Nair", title: "Employee", className: "avatar avatar-photo priya", initials: "" },
+  };
+  const identity = identities[state.role];
+  const signedInAvatar = document.querySelector(".signed-in .avatar");
+  signedInAvatar.className = identity.className;
+  signedInAvatar.textContent = identity.initials;
+  document.querySelector(".signed-in strong").textContent = identity.name;
   const signedIn = document.querySelector(".signed-in small");
-  signedIn.textContent = state.role === "hr" ? "HR Business Partner" : state.role === "manager" ? "People Manager" : "Employee";
+  signedIn.textContent = identity.title;
   render();
   showToast(`Switched to ${event.target.options[event.target.selectedIndex].text}`);
 });

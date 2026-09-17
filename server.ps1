@@ -49,6 +49,9 @@ try {
             $stream.Write($headerBytes, 0, $headerBytes.Length)
             $stream.Write($body, 0, $body.Length)
         }
+        catch [System.IO.IOException] {
+            # Browsers may cancel an asset request after opening the connection.
+        }
         finally {
             $client.Dispose()
         }
