@@ -332,41 +332,6 @@ tbody tr[data-employee]:hover { background: #f8fbf8; }
 .trend-row > * { padding: 10px 12px; font-size: 10px; }
 .trend-row.heading { color: var(--muted); background: #f7f9f7; font-weight: 700; text-transform: uppercase; }
 .metric-gap { color: #24704f; font-weight: 800; }
-.cube-experience { margin: 20px -24px 0; overflow: hidden; background: #f3f7f4; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.cube-toolbar { min-height: 66px; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: rgba(255,255,255,.78); border-bottom: 1px solid var(--line); }
-.cube-toolbar > div:first-child { display: flex; align-items: center; gap: 10px; }
-.cube-toolbar h3 { margin: 0; font-size: 15px; }
-.cube-axis-picker { display: flex; align-items: center; gap: 8px; }
-.cube-axis-picker label { color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
-.cube-axis-picker select { height: 36px; min-width: 205px; padding: 0 30px 0 10px; color: var(--ink); background: white; border: 1px solid #cbd5cd; border-radius: 5px; font-weight: 700; }
-.cube-layout { min-height: 470px; display: grid; grid-template-columns: minmax(0, 1fr) 245px; }
-.cube-stage { min-width: 0; position: relative; }
-#talentCube { width: 100%; height: 470px; position: relative; overflow: hidden; }
-#talentCube canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
-#talentCube canvas:active { cursor: grabbing; }
-.cube-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 11px; }
-#talentCube canvas + .cube-fallback { display: none; }
-.cube-axis-label { position: absolute; z-index: 2; color: #527062; font-size: 9px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; pointer-events: none; }
-.cube-axis-x { right: 8%; bottom: 22px; }
-.cube-axis-y { left: 18px; top: 16%; transform: rotate(-90deg); transform-origin: left center; }
-.cube-axis-z { left: 9%; bottom: 29px; }
-.cube-side { padding: 28px 20px; display: flex; flex-direction: column; background: rgba(255,255,255,.82); border-left: 1px solid var(--line); }
-.cube-side > strong { margin-top: 8px; font: 800 21px "Manrope", sans-serif; }
-.cube-side > small { margin-top: 3px; color: var(--muted); font-size: 10px; }
-.cube-layers { margin-top: 24px; display: grid; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-.cube-layer { min-height: 52px; padding: 9px 10px; display: grid; grid-template-columns: 9px 1fr auto; align-items: center; gap: 9px; color: var(--muted); background: white; border: 0; border-bottom: 1px solid var(--line); text-align: left; }
-.cube-layer:last-child { border-bottom: 0; }
-.cube-layer:hover { background: #f7faf8; }
-.cube-layer.active { color: var(--ink); background: #eef6f1; box-shadow: inset 3px 0 var(--forest); }
-.cube-layer i { width: 8px; height: 28px; display: block; border-radius: 2px; }
-.cube-layer span { font-size: 10px; font-weight: 700; }
-.cube-layer strong { color: var(--ink); font: 800 14px "Manrope", sans-serif; }
-.cube-dimensions { margin-top: auto; padding-top: 20px; display: grid; gap: 9px; border-top: 1px solid var(--line); }
-.cube-dimensions span { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 9px; font-weight: 700; }
-.axis-dot { width: 7px; height: 7px; display: block; border-radius: 50%; }
-.axis-dot.x { background: #315f4b; }
-.axis-dot.y { background: #91aa33; }
-.axis-dot.z { background: var(--coral); }
 .matrix-wrap { padding: 0 10px 25px 38px; position: relative; }
 .nine-box { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #bfc9c1; }
 .matrix-cell { min-height: 120px; padding: 14px; display: flex; flex-direction: column; gap: 8px; background: #f8faf8; border-right: 1px solid #d7ded8; border-bottom: 1px solid #d7ded8; }
@@ -484,9 +449,6 @@ tbody tr[data-employee]:hover { background: #f8fbf8; }
   .approval-flow { grid-column: auto; grid-row: auto; }
   .approval-actions { justify-content: flex-end; }
   .talent-panel { padding: 18px; }
-  .cube-experience { margin-inline: -18px; }
-  .cube-toolbar { padding-inline: 18px; }
-  .cube-layout { grid-template-columns: minmax(0, 1fr) 210px; }
   .insight-filterbar { align-items: stretch; flex-direction: column; }
   .insight-filters { justify-content: flex-start; }
   .insight-split { grid-template-columns: 1fr; }
@@ -521,23 +483,6 @@ tbody tr[data-employee]:hover { background: #f8fbf8; }
   .insight-filters { display: grid; grid-template-columns: 1fr; }
   .insight-filters select { width: 100%; max-width: none; }
   .insight-section { padding: 14px; }
-  .cube-toolbar { align-items: stretch; flex-direction: column; }
-  .cube-toolbar > div:first-child { min-height: 28px; }
-  .cube-axis-picker { display: grid; grid-template-columns: 1fr auto; }
-  .cube-axis-picker label { grid-column: 1 / -1; }
-  .cube-axis-picker select { width: 100%; min-width: 0; }
-  .cube-layout { min-height: 0; grid-template-columns: 1fr; }
-  #talentCube { height: 360px; }
-  .cube-side { padding: 16px; border-top: 1px solid var(--line); border-left: 0; }
-  .cube-layers { margin-top: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .cube-layer { min-width: 0; min-height: 68px; grid-template-columns: 7px 1fr; grid-template-rows: 1fr auto; gap: 4px 7px; border-right: 1px solid var(--line); border-bottom: 0; }
-  .cube-layer:last-child { border-right: 0; }
-  .cube-layer.active { box-shadow: inset 0 3px var(--forest); }
-  .cube-layer i { width: 6px; height: 36px; grid-row: 1 / -1; }
-  .cube-layer span { overflow-wrap: anywhere; }
-  .cube-layer strong { grid-column: 2; }
-  .cube-dimensions { margin-top: 14px; padding-top: 13px; grid-template-columns: repeat(3, 1fr); }
-  .cube-dimensions span { min-width: 0; align-items: flex-start; font-size: 8px; overflow-wrap: anywhere; }
   .insight-metric-grid { grid-template-columns: repeat(2, 1fr); }
   .insight-metric-grid .insight-metric:nth-child(3n) { border-right: 1px solid var(--line); }
   .insight-metric-grid .insight-metric:nth-child(2n) { border-right: 0; }

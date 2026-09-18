@@ -4,8 +4,6 @@ const state = {
   selectedEmployee: "priya",
   insightTab: "goals",
   talentTab: "bell",
-  thirdAxis: "readiness",
-  thirdLayer: 2,
   peopleQuery: "",
   launched: false,
   approved: new Set(),
@@ -167,9 +165,10 @@ function cyclesScreen() {
 }
 
 function peopleScreen() {
+  const manager = state.role === "manager";
   const filtered = employees.filter(e => `${e.name} ${e.title} ${e.team}`.toLowerCase().includes(state.peopleQuery.toLowerCase()));
   return `
-    ${pageHeading("Calibration workspace", "Review employees as a continuum", "Compare performance, potential, risk signals, and recommendations without losing the full appraisal context.", `<button class="button">${icon("sliders-horizontal")} Calibration view</button><button class="button primary" data-action="send-nudges">${icon("send")} Nudge pending</button>`)}
+    ${pageHeading(manager ? "Manager workspace" : "Calibration workspace", manager ? "My team" : "Review employees as a continuum", manager ? "Track your direct reports, review performance evidence, and prepare recommendations for calibration." : "Compare performance, potential, risk signals, and recommendations without losing the full appraisal context.", `<button class="button">${icon("sliders-horizontal")} ${manager ? "Team view" : "Calibration view"}</button><button class="button primary" data-action="send-nudges">${icon("send")} Nudge pending</button>`)}
     <div class="filterbar"><div class="search-field">${icon("search")}<input id="peopleSearch" value="${state.peopleQuery}" type="search" placeholder="Search people, role, or team" aria-label="Search people"></div><select class="filter-select"><option>All teams</option><option>Product</option><option>Engineering</option><option>Sales</option></select><select class="filter-select"><option>All stages</option><option>Manager review</option><option>Calibration</option><option>Complete</option></select><button class="button compact">${icon("arrow-up-down")} Sort</button></div>
     <article class="card people-table-card"><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Team</th><th>Review stage</th><th>Rating</th><th>Potential</th><th>Signal</th><th>Recommendation</th><th></th></tr></thead><tbody>
       ${filtered.length ? filtered.map(e => `<tr data-employee="${e.id}"><td>${personCell(e)}</td><td>${e.team}</td><td><span class="badge ${e.statusTone}">${e.status}</span></td><td><div class="rating"><strong>${e.rating.toFixed(1)}</strong><div class="rating-track"><span style="width:${e.rating/5*100}%"></span></div></div></td><td><span class="badge ${e.potential === "High" ? "lime" : "gray"}">${e.potential}</span></td><td>${e.risk ? `<span class="badge coral"><span class="anomaly-dot"></span>Anomaly</span>` : `<span class="badge green">Stable</span>`}</td><td><strong>${e.recommendation}</strong></td><td><button class="row-action" title="Open appraisal">${icon("chevron-right")}</button></td></tr>`).join("") : `<tr><td colspan="8"><div class="empty-state">No employees match your search.</div></td></tr>`}
@@ -179,6 +178,7 @@ function peopleScreen() {
 function employeeDetailScreen() {
   const e = employees.find(person => person.id === state.selectedEmployee) || employees[0];
   const isPriya = e.id === "priya";
+  const manager = state.role === "manager";
   const insightContent = {
     goals: `<div class="goal-row"><div><strong>Grow enterprise adoption to 45%</strong><p>OKR · Customer & growth</p></div><div class="progress-track"><span style="width:92%"></span></div><strong>92%</strong></div><div class="goal-row"><div><strong>Launch guided onboarding v2</strong><p>Goal · Product delivery</p></div><div class="progress-track"><span style="width:100%"></span></div><strong>100%</strong></div><div class="goal-row"><div><strong>Build strategic finance fluency</strong><p>Development goal · Skill gap</p></div><div class="progress-track amber"><span style="width:38%"></span></div><strong>38%</strong></div>`,
     skills: `<div class="scorecard-grid"><div class="scorecard-item"><span>Customer insight</span><strong>4.8 / 5</strong></div><div class="scorecard-item"><span>Product strategy</span><strong>4.5 / 5</strong></div><div class="scorecard-item"><span>People leadership</span><strong>4.2 / 5</strong></div><div class="scorecard-item"><span>Strategic finance</span><strong style="color:var(--coral)">2.9 / 5</strong></div></div>`,
@@ -198,7 +198,7 @@ function employeeDetailScreen() {
         <article class="card"><div class="section-header"><div><h2>Connected performance insights</h2><p>One view across goals, skills, feedback, and scorecard</p></div></div><div class="insight-tabs">${[["goals","target","Goals & OKRs"],["skills","brain-circuit","Skills"],["feedback","messages-square","Feedback"],["scorecard","chart-no-axes-combined","Scorecard"]].map(([id,glyph,label]) => `<button class="tab ${state.insightTab === id ? "active" : ""}" data-tab="${id}">${icon(glyph)} ${label}</button>`).join("")}</div><div class="tab-panel">${insightContent}</div></article>
       </div>
       <aside class="detail-side">
-        <article class="card"><div class="section-header"><div><h2>Manager recommendation</h2><p>Complete all post-appraisal actions in one go</p></div><span class="badge amber">Draft</span></div><div class="action-form">
+        <article class="card"><div class="section-header"><div><h2>${manager ? "Your recommendation" : "Manager recommendation"}</h2><p>${manager ? "Complete and submit your team recommendation" : "Review the manager submission before routing it onward"}</p></div><span class="badge amber">${manager ? "Draft" : "HR review"}</span></div><div class="action-form">
           <div class="form-row"><div class="field"><label>Final rating <small>Suggested 4.6</small></label><select id="rating"><option>4.6 · Exceptional</option><option>4.0 · Exceeds</option><option>3.0 · Meets</option><option>2.0 · Developing</option></select></div><div class="field"><label>Cohort rank</label><input value="#3 of 42" aria-label="Cohort rank"></div></div>
           <div class="field"><label>Bell curve placement <small>Above target</small></label><input type="range" min="1" max="5" value="5" aria-label="Bell curve placement"><div class="range-labels"><span>Needs support</span><span>Exceptional</span></div></div>
           <div class="form-row"><div class="field"><label>Salary adjustment</label><select id="salaryAdjustment"><option>+ 8.0%</option><option>+ 6.0%</option><option>+ 4.0%</option><option>No change</option><option>- 2.0%</option></select></div><div class="field"><label>Position action</label><select id="positionAction"><option>Promote</option><option>No change</option><option>Transfer</option><option>Demote</option></select></div></div>
@@ -206,7 +206,7 @@ function employeeDetailScreen() {
           <div class="form-row"><div class="field"><label>Succession readiness</label><select><option>Ready in 1–2 years</option><option>Ready now</option><option>Ready in 3+ years</option></select></div><div class="field"><label>Development plan</label><select><option>Finance fluency accelerator</option><option>Executive presence</option><option>People leadership</option></select></div></div>
           <div class="field"><label>Employee communication</label><textarea>Priya, your impact this year has been exceptional. We are recommending promotion to Group Product Manager, alongside a focused development plan in strategic finance.</textarea></div>
           <div class="impact-summary"><div><span>New grade</span><strong>P6</strong></div><div><span>New salary</span><strong>$136,080</strong></div><div><span>Effective</span><strong>01 Jan</strong></div></div>
-          <div class="form-footer"><button class="button" data-action="save-draft">Save draft</button><button class="button primary" data-action="submit-recommendation">Submit for approval ${icon("arrow-right")}</button></div>
+          <div class="form-footer"><button class="button" data-action="save-draft">${manager ? "Save draft" : "Return to manager"}</button><button class="button primary" data-action="submit-recommendation">${manager ? "Submit for approval" : "Approve & route"} ${icon("arrow-right")}</button></div>
         </div></article>
       </aside>
     </section>`;
@@ -214,22 +214,25 @@ function employeeDetailScreen() {
 
 function actionsScreen() {
   if (state.role === "employee") return developmentScreen();
+  const manager = state.role === "manager";
   return `
-    ${pageHeading("Integrated decisions", "Actions & rewards", "Review ratings, talent moves, pay impact, succession, and development recommendations together before submitting.", `<button class="button">${icon("download")} Export</button><button class="button primary" data-action="submit-batch">${icon("send")} Submit batch</button>`)}
-    <section class="stats-grid">${statCard("Recommended promotions", "14", "9 meet policy threshold", "award", "green")}${statCard("Salary impact", "$214K", "72% of allocated budget", "circle-dollar-sign", "blue")}${statCard("Succession moves", "6", "3 critical roles covered", "route", "amber")}${statCard("Development plans", "31", "8 need assignment", "sprout", "coral")}</section>
-    <article class="card people-table-card"><div class="section-header"><div><h2>Decision continuum</h2><p>FY26 Annual Review · 42 recommendations</p></div><span class="badge green">Within budget</span></div><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Rating</th><th>Position action</th><th>Salary</th><th>Succession</th><th>Development</th><th>Policy</th></tr></thead><tbody>${employees.slice(0,5).map(e => `<tr data-employee="${e.id}"><td>${personCell(e)}</td><td><strong>${e.rating.toFixed(1)}</strong></td><td><span class="badge ${e.recommendation === "Promotion" ? "lime" : "gray"}">${e.recommendation === "Promotion" ? "Promote" : "No change"}</span></td><td>${e.recommendation === "Promotion" ? "+8.0%" : "+4.0%"}</td><td>${e.potential === "High" ? "Ready 1–2 yrs" : "Not identified"}</td><td>${e.risk ? "Required" : "Assigned"}</td><td><span class="badge ${e.rating >= 4.2 ? "green" : "gray"}">${e.rating >= 4.2 ? "Eligible" : "Standard"}</span></td></tr>`).join("")}</tbody></table></div></article>`;
+    ${pageHeading(manager ? "Manager decisions" : "Integrated decisions", manager ? "Team recommendations" : "Actions & rewards", manager ? "Finalize ratings, development actions, and talent moves for your direct reports before submission." : "Review ratings, talent moves, pay impact, succession, and development recommendations together before submitting.", `<button class="button">${icon("download")} Export</button><button class="button primary" data-action="submit-batch">${icon("send")} ${manager ? "Submit recommendations" : "Submit batch"}</button>`)}
+    <section class="stats-grid">${statCard("Recommended promotions", manager ? "1" : "14", manager ? "Meets policy threshold" : "9 meet policy threshold", "award", "green")}${statCard("Salary impact", manager ? "$31K" : "$214K", manager ? "Within team allocation" : "72% of allocated budget", "circle-dollar-sign", "blue")}${statCard("Succession moves", manager ? "2" : "6", manager ? "Team candidates" : "3 critical roles covered", "route", "amber")}${statCard("Development plans", manager ? "3" : "31", manager ? "For direct reports" : "8 need assignment", "sprout", "coral")}</section>
+    <article class="card people-table-card"><div class="section-header"><div><h2>${manager ? "My team decisions" : "Decision continuum"}</h2><p>FY26 Annual Review · ${manager ? "8 team recommendations" : "42 recommendations"}</p></div><span class="badge green">Within budget</span></div><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Rating</th><th>Position action</th><th>Salary</th><th>Succession</th><th>Development</th><th>Policy</th></tr></thead><tbody>${employees.slice(0,5).map(e => `<tr data-employee="${e.id}"><td>${personCell(e)}</td><td><strong>${e.rating.toFixed(1)}</strong></td><td><span class="badge ${e.recommendation === "Promotion" ? "lime" : "gray"}">${e.recommendation === "Promotion" ? "Promote" : "No change"}</span></td><td>${e.recommendation === "Promotion" ? "+8.0%" : "+4.0%"}</td><td>${e.potential === "High" ? "Ready 1–2 yrs" : "Not identified"}</td><td>${e.risk ? "Required" : "Assigned"}</td><td><span class="badge ${e.rating >= 4.2 ? "green" : "gray"}">${e.rating >= 4.2 ? "Eligible" : "Standard"}</span></td></tr>`).join("")}</tbody></table></div></article>`;
 }
 
 function approvalsScreen() {
+  const manager = state.role === "manager";
   const approvals = [
     { id: "priya", employee: employees[0], move: "Promotion to Group Product Manager", impact: "+8.0% · P5 → P6", current: 1 },
     { id: "daniel", employee: employees[1], move: "Critical role succession nomination", impact: "Ready in 1–2 years", current: 2 },
     { id: "sofia", employee: employees[2], move: "Development plan & salary hold", impact: "Review after 90 days", current: 1 },
     { id: "marcus", employee: employees[3], move: "Merit adjustment", impact: "+4.0% · Within range", current: 2 },
   ];
+  const visibleApprovals = manager ? approvals.slice(0, 2) : approvals;
   return `
-    ${pageHeading("Decision governance", "Approvals", "Move promotion, grade, salary, and development decisions through a transparent multi-level approval flow.", `<button class="button">${icon("list-filter")} Filter queue</button>`)}
-    <section class="approval-list">${approvals.map(a => {
+    ${pageHeading(manager ? "Manager workspace" : "Decision governance", manager ? "My approvals" : "Approvals", manager ? "Review the decisions currently awaiting your action for your team." : "Move promotion, grade, salary, and development decisions through a transparent multi-level approval flow.", `<button class="button">${icon("list-filter")} Filter queue</button>`)}
+    <section class="approval-list">${visibleApprovals.map(a => {
       const approved = state.approved.has(a.id);
       return `<article class="card approval-card"><div class="approval-person">${a.employee.avatar ? `<span class="avatar avatar-photo ${a.employee.avatar} lg"></span>` : `<span class="avatar lg">${a.employee.initials}</span>`}<div><span class="badge ${approved ? "green" : "amber"}">${approved ? "Approved" : "Action required"}</span><h3 style="margin-top:8px">${a.employee.name}</h3><p>${a.move}<br><strong>${a.impact}</strong></p></div></div><div class="approval-flow">${["Manager","HR partner","Business leader","People Ops"].map((step, index) => `<div class="approval-step ${approved || index < a.current ? "done" : index === a.current ? "current" : ""}"><span class="step-dot">${icon(approved || index < a.current ? "check" : index === a.current ? "clock-3" : "circle")}</span>${step}</div>`).join("")}</div><div class="approval-actions">${approved ? `<button class="button compact" data-employee="${a.id}">${icon("eye")} View</button>` : `<button class="button compact danger" data-action="reject" data-id="${a.id}">${icon("x")} Decline</button><button class="button compact primary" data-action="approve" data-id="${a.id}">${icon("check")} Approve</button>`}</div></article>`;
     }).join("")}</section>`;
@@ -243,57 +246,6 @@ function insightSection(title, subtitle, content) {
   return `<section class="insight-section"><div class="insight-section-heading"><div><h3>${title}</h3><p>${subtitle}</p></div></div>${content}</section>`;
 }
 
-const thirdAxisModels = {
-  readiness: {
-    label: "Readiness / aptitude",
-    axisLabel: "Readiness",
-    levels: ["Building", "Near-ready", "Ready now"],
-    colors: [0x8fa79b, 0x80ad91, 0xd7ef74],
-    org: [
-      [10, 5, 2, 18, 20, 8, 8, 10, 5],
-      [12, 10, 5, 15, 38, 16, 1, 10, 6],
-      [6, 4, 5, 3, 12, 8, 0, 4, 7],
-    ],
-    team: [
-      [0, 0, 0, 1, 1, 0, 1, 0, 0],
-      [1, 0, 0, 0, 1, 1, 0, 0, 0],
-      [0, 0, 1, 0, 0, 1, 0, 0, 0],
-    ],
-  },
-  culture: {
-    label: "Values / culture fit",
-    axisLabel: "Culture fit",
-    levels: ["Concern", "Aligned", "Role model"],
-    colors: [0xe28b7d, 0x78a58d, 0xd7ef74],
-    org: [
-      [4, 1, 0, 4, 5, 1, 5, 4, 3],
-      [21, 14, 4, 25, 62, 18, 3, 12, 7],
-      [3, 4, 8, 7, 12, 12, 1, 4, 4],
-    ],
-    team: [
-      [0, 0, 0, 0, 1, 0, 1, 0, 0],
-      [1, 0, 0, 1, 1, 1, 0, 0, 0],
-      [0, 1, 1, 0, 0, 0, 0, 0, 0],
-    ],
-  },
-  risk: {
-    label: "Risk of loss / retention risk",
-    axisLabel: "Risk of loss",
-    levels: ["Low risk", "Moderate risk", "High risk"],
-    colors: [0x76a88b, 0xe0b75c, 0xe16f61],
-    org: [
-      [20, 15, 10, 25, 48, 20, 1, 7, 5],
-      [6, 3, 2, 8, 28, 8, 3, 8, 4],
-      [2, 1, 0, 3, 8, 2, 5, 5, 1],
-    ],
-    team: [
-      [1, 1, 1, 1, 1, 0, 0, 0, 0],
-      [0, 0, 0, 0, 1, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 1, 1, 0, 0],
-    ],
-  },
-};
-
 const nineBoxCells = [
   ["Growth talent", "accent", "Elena", "Develop performance"],
   ["High potential", "strong", "Daniel", "Broaden scope"],
@@ -306,28 +258,6 @@ const nineBoxCells = [
   ["Trusted expert", "accent", "Marcus", "Specialist pathway"],
 ];
 
-function renderNineBoxSlice(model, layers, population) {
-  const counts = layers[state.thirdLayer];
-  const layerName = model.levels[state.thirdLayer];
-  const slicePopulation = counts.reduce((total, count) => total + count, 0);
-  const cells = nineBoxCells.map(([label, tone, person, action], index) => {
-    const count = counts[index];
-    const share = population ? (count / population * 100).toFixed(1) : "0.0";
-    return `<div class="matrix-cell ${tone}"><strong>${label}</strong><span class="cell-share">${count} · ${share}% total</span>${count ? `<span class="people-chip">${person}</span>` : ""}<small>${action}</small></div>`;
-  }).join("");
-  return {
-    slicePopulation,
-    markup: insightSection(`${layerName} slice · ${model.axisLabel}`, `${slicePopulation} of ${population} people · selected layer in the 3D model`, `<div class="matrix-wrap"><div class="matrix-axis y-axis">Potential ${icon("arrow-up")}</div><div class="nine-box">${cells}</div><div class="matrix-axis x-axis">Performance ${icon("arrow-right")}</div></div>`),
-  };
-}
-
-function renderTalentCube(model, layers, population, slicePopulation) {
-  const axisOptions = Object.entries(thirdAxisModels).map(([value, option]) => `<option value="${value}" ${state.thirdAxis === value ? "selected" : ""}>${option.label}</option>`).join("");
-  const layerButtons = model.levels.map((level, index) => `<button class="cube-layer ${state.thirdLayer === index ? "active" : ""}" data-third-layer="${index}" aria-pressed="${state.thirdLayer === index}"><i style="background:#${model.colors[index].toString(16).padStart(6, "0")}"></i><span>${level}</span><strong>${layers[index].reduce((total, count) => total + count, 0)}</strong></button>`).join("");
-  const sliceShare = population ? (slicePopulation / population * 100).toFixed(1) : "0.0";
-  return `<section class="cube-experience" aria-labelledby="cubeTitle"><header class="cube-toolbar"><div><span class="badge green">3 × 3 × 3</span><h3 id="cubeTitle">3D talent cube</h3></div><div class="cube-axis-picker"><label for="thirdAxisSelect">Third axis</label><select id="thirdAxisSelect">${axisOptions}</select><button class="icon-button" data-action="reset-cube" title="Reset cube view" aria-label="Reset cube view">${icon("rotate-ccw")}</button></div></header><div class="cube-layout"><div class="cube-stage"><div id="talentCube" role="img" aria-label="Performance by potential by ${model.axisLabel} 3D talent cube"><div class="cube-fallback">3D view unavailable</div></div><span class="cube-axis-label cube-axis-x">Performance</span><span class="cube-axis-label cube-axis-y">Potential</span><span class="cube-axis-label cube-axis-z">${model.axisLabel}</span></div><aside class="cube-side" aria-live="polite"><span class="eyebrow">Selected layer</span><strong>${model.levels[state.thirdLayer]}</strong><small>${slicePopulation} people · ${sliceShare}% of cohort</small><div class="cube-layers" role="group" aria-label="${model.axisLabel} layer">${layerButtons}</div><div class="cube-dimensions"><span><i class="axis-dot x"></i>Performance</span><span><i class="axis-dot y"></i>Potential</span><span><i class="axis-dot z"></i>${model.axisLabel}</span></div></aside></div></section>`;
-}
-
 function talentInsightsScreen() {
   const manager = state.role === "manager";
   const tabs = [["bell", "bar-chart-3", "Bell curve"], ["ninebox", "grid-3x3", "9-box matrix"], ["succession", "route", "Succession"]];
@@ -339,167 +269,18 @@ function talentInsightsScreen() {
     ${insightSection(manager ? "Department fairness benchmark" : "Fairness & representation checks", manager ? "Aggregated department indicators; team-level demographic results are suppressed for privacy" : "Directional indicators for HR review; not automated decision criteria", `<div class="fairness-grid"><div><span>Women · mean rating</span><strong>3.68</strong><small>−0.04 vs men</small><i class="fairness-bar"><b style="width:96%"></b></i></div><div><span>Underrepresented groups</span><strong>3.61</strong><small>−0.10 vs cohort</small><i class="fairness-bar warning"><b style="width:89%"></b></i></div><div><span>Remote employees</span><strong>3.55</strong><small>−0.17 vs office</small><i class="fairness-bar warning"><b style="width:84%"></b></i></div><div><span>New hires</span><strong>3.42</strong><small>−0.28 vs tenured</small><i class="fairness-bar"><b style="width:78%"></b></i></div><div><span>Adverse impact ratio</span><strong>0.91</strong><small>Threshold ≥ 0.80</small><i class="fairness-bar"><b style="width:91%"></b></i></div><div><span>Unexplained gap</span><strong>2.1%</strong><small>After role/grade controls</small><i class="fairness-bar"><b style="width:98%"></b></i></div></div>`)}
     ${insightSection("Rating-linked outcomes", "Downstream decisions and prior-cycle outcome signals", `<div class="insight-metric-grid outcome-grid">${insightMetric("Top ratings", manager ? "37.5%" : "37.5%", "Ratings 4–5")}${insightMetric("Promotion rate", manager ? "12.5%" : "7.3%", "Recommended this cycle", "positive")}${insightMetric("Mean merit increase", "5.8%", "Top-rated cohort")}${insightMetric("Development actions", manager ? "37.5%" : "29.0%", "Plans or stretch roles")}${insightMetric("Support plans", manager ? "1" : "9", "For ratings 1–2", "warning")}${insightMetric("Prior-year attrition", "8.2%", "By equivalent rating mix")}</div>`)}
     ${insightSection("Three-cycle trend", "Distribution stability and rating inflation", `<div class="trend-table"><div class="trend-row heading"><span>Cycle</span><span>Mean</span><span>Top ratings</span><span>Low ratings</span><span>Changed in calibration</span></div><div class="trend-row"><strong>FY26</strong><span>3.70</span><span>37.5%</span><span>17.3%</span><span>19.0%</span></div><div class="trend-row"><strong>FY25</strong><span>3.50</span><span>31.2%</span><span>18.1%</span><span>15.4%</span></div><div class="trend-row"><strong>FY24</strong><span>3.44</span><span>28.6%</span><span>19.7%</span><span>14.8%</span></div></div>`)}`;
-  const thirdAxisModel = thirdAxisModels[state.thirdAxis];
-  const thirdAxisLayers = thirdAxisModel[manager ? "team" : "org"];
+  const nineBoxCounts = manager ? [1, 1, 1, 1, 2, 1, 1, 0, 0] : [28, 19, 12, 36, 84, 31, 9, 20, 9];
   const nineBoxPopulation = manager ? 8 : 248;
-  const nineBoxSlice = renderNineBoxSlice(thirdAxisModel, thirdAxisLayers, nineBoxPopulation);
-  const nineBox = `<div class="insight-filterbar"><div><strong>Performance × potential × ${thirdAxisModel.axisLabel}</strong><small>Calibrated placement · ${manager ? "8 direct reports" : "248 employees"}</small></div><div class="insight-filters"><select aria-label="9-box cycle"><option>FY26 Annual Review</option><option>FY25 Annual Review</option></select>${manager ? "" : `<select aria-label="9-box organization"><option>All organizations</option><option>Product</option><option>Engineering</option><option>Sales</option></select>`}<select aria-label="Critical talent"><option>All talent</option><option>Critical roles</option><option>High flight risk</option><option>Promotion ready</option></select></div></div>
+  const nineBox = `<div class="insight-filterbar"><div><strong>Performance × potential</strong><small>Calibrated placement · ${manager ? "8 direct reports" : "248 employees"}</small></div><div class="insight-filters"><select aria-label="9-box cycle"><option>FY26 Annual Review</option><option>FY25 Annual Review</option></select>${manager ? "" : `<select aria-label="9-box organization"><option>All organizations</option><option>Product</option><option>Engineering</option><option>Sales</option></select>`}<select aria-label="Critical talent"><option>All talent</option><option>Critical roles</option><option>High flight risk</option><option>Promotion ready</option></select></div></div>
     <div class="talent-summary expanded">${insightMetric("Population plotted", manager ? "8" : "248", "100% assessed")}${insightMetric("High potential", manager ? "3" : "59", manager ? "37.5% of team" : "23.8% of cohort", "positive")}${insightMetric("High performers", manager ? "2" : "52", manager ? "25% of team" : "21.0% of cohort")}${insightMetric("Future leaders", manager ? "1" : "12", "High performance + potential", "positive")}${insightMetric("High flight risk", manager ? "1" : "17", "Action recommended", "warning")}${insightMetric("Critical role coverage", "73%", "+11% vs FY25")}</div>
-    ${renderTalentCube(thirdAxisModel, thirdAxisLayers, nineBoxPopulation, nineBoxSlice.slicePopulation)}
-    ${nineBoxSlice.markup}
+    ${insightSection("9-box talent matrix", "Each cell shows employee count, cohort share, and representative talent", `<div class="matrix-wrap"><div class="matrix-axis y-axis">Potential ${icon("arrow-up")}</div><div class="nine-box">${nineBoxCells.map(([label, tone, person, action], index) => { const count = nineBoxCounts[index]; const share = (count / nineBoxPopulation * 100).toFixed(1); return `<div class="matrix-cell ${tone}"><strong>${label}</strong><span class="cell-share">${count} · ${share}%</span>${count ? `<span class="people-chip">${person}</span>` : ""}<small>${action}</small></div>`; }).join("")}</div><div class="matrix-axis x-axis">Performance ${icon("arrow-right")}</div></div>`)}
     <div class="insight-split">${insightSection("Movement since FY25", "How employee placement changed", `<div class="insight-metric-grid compact">${insightMetric("Moved up/right", manager ? "2" : "51", "Positive movement", "positive")}${insightMetric("Moved down/left", manager ? "1" : "23", "Needs review", "warning")}${insightMetric("Unchanged", manager ? "4" : "153", "Stable placement")}${insightMetric("Newly assessed", manager ? "1" : "21", "No prior placement")}${insightMetric("Potential upgraded", manager ? "1" : "29", manager ? "12.5% of team" : "11.7% of cohort")}${insightMetric("Performance upgraded", manager ? "1" : "34", manager ? "12.5% of team" : "13.7% of cohort")}</div>`)}${insightSection("Talent actions", "Actions generated from calibrated placement", `<div class="insight-metric-grid compact">${insightMetric("Promotion ready", manager ? "1" : "18", "Meets policy threshold", "positive")}${insightMetric("Succession slate", manager ? "2" : "37", "Named to critical roles")}${insightMetric("Retention priority", manager ? "1" : "17", "High talent + flight risk", "warning")}${insightMetric("Stretch assignment", manager ? "2" : "43", "Ready for broader scope")}${insightMetric("Development plan", manager ? "3" : "72", "Skill intervention")}${insightMetric("Performance support", manager ? "1" : "9", "Immediate action", "warning")}</div>`)}</div>
     ${insightSection("Readiness, risk & mobility", "Forward-looking talent health", `<div class="fairness-grid"><div><span>Ready now</span><strong>${manager ? "1" : "18"}</strong><small>For next role</small><i class="fairness-bar"><b style="width:73%"></b></i></div><div><span>Ready in 1–2 years</span><strong>${manager ? "2" : "42"}</strong><small>Active development</small><i class="fairness-bar"><b style="width:62%"></b></i></div><div><span>Mobility willing</span><strong>64%</strong><small>Location or function</small><i class="fairness-bar"><b style="width:64%"></b></i></div><div><span>Critical skills match</span><strong>78%</strong><small>Against future roles</small><i class="fairness-bar"><b style="width:78%"></b></i></div><div><span>High flight risk</span><strong>${manager ? "1" : "17"}</strong><small>${manager ? "12.5%" : "6.9%"} of cohort</small><i class="fairness-bar warning"><b style="width:31%"></b></i></div><div><span>Retention actions open</span><strong>${manager ? "1" : "12"}</strong><small>${manager ? "1 awaiting owner" : "5 awaiting owner"}</small><i class="fairness-bar warning"><b style="width:48%"></b></i></div></div>`)}
     <div class="insight-split">${insightSection("Placement stability", "Tenure, confidence, and calibration quality", `<div class="insight-metric-grid compact">${insightMetric("Average time in box", "1.4 cycles", "Across assessed talent")}${insightMetric("Same box 2+ cycles", manager ? "2" : "64", "Stagnation watch", "warning")}${insightMetric("Placement overrides", manager ? "1" : "16", "Final vs proposed")}${insightMetric("Assessor disagreement", manager ? "2" : "38", "Manager vs panel", "warning")}${insightMetric("Low confidence", manager ? "0" : "11", "Evidence below threshold")}${insightMetric("Missing evidence", manager ? "1" : "14", "Potential rationale due", "warning")}</div>`)}${insightSection("Development & mobility outcomes", "Coverage and realized movement", `<div class="insight-metric-grid compact">${insightMetric("Plan coverage", "88%", "High-potential cohort", "positive")}${insightMetric("Mentors assigned", manager ? "2" : "41", "Active pairings")}${insightMetric("Stretch placements", manager ? "2" : "34", "Started this cycle")}${insightMetric("Internal moves", manager ? "1" : "23", "Last 12 months", "positive")}${insightMetric("Promotions realized", manager ? "1" : "15", "From prior matrix")}${insightMetric("Regrettable exits", manager ? "0" : "6", "High-value talent", manager ? "" : "warning")}</div>`)}</div>
     ${insightSection(manager ? "Department representation benchmark" : "Representation & assessment quality", manager ? "Aggregated department composition; team-level demographic results are suppressed for privacy" : "Composition of high-potential and future-leader cohorts", `<div class="trend-table"><div class="trend-row heading"><span>Cohort check</span><span>Overall</span><span>High potential</span><span>Future leaders</span><span>Gap</span></div><div class="trend-row"><strong>Women</strong><span>46%</span><span>44%</span><span>42%</span><span class="metric-gap">−4 pts</span></div><div class="trend-row"><strong>Underrepresented groups</strong><span>29%</span><span>26%</span><span>25%</span><span class="metric-gap">−4 pts</span></div><div class="trend-row"><strong>Remote employees</strong><span>38%</span><span>31%</span><span>25%</span><span class="metric-gap warning">−13 pts</span></div><div class="trend-row"><strong>Assessment confidence</strong><span>—</span><span>91%</span><span>96%</span><span>Healthy</span></div></div>`)}`;
   const succession = `<div class="talent-summary"><div><span>Critical roles</span><strong>${manager ? "3" : "26"}</strong><small>In current scope</small></div><div><span>Coverage</span><strong>73%</strong><small>+11% vs last cycle</small></div><div><span>Ready now</span><strong>${manager ? "2" : "18"}</strong><small>Named successors</small></div></div><div class="succession-list"><div class="succession-row"><div><strong>VP, Product</strong><small>Critical role · Incumbent: Jordan Lee</small></div><div class="successor-pipeline"><span class="avatar avatar-photo priya"></span><span><strong>Priya Nair</strong><small>Ready 1–2 years</small></span></div><span class="badge amber">1 successor</span></div><div class="succession-row"><div><strong>Engineering Director</strong><small>Critical role · Incumbent: Taylor Chen</small></div><div class="successor-pipeline"><span class="avatar avatar-photo daniel"></span><span><strong>Daniel Kim</strong><small>Ready now</small></span></div><span class="badge green">2 successors</span></div><div class="succession-row"><div><strong>Customer Success Director</strong><small>Critical role · Vacancy risk: medium</small></div><div class="successor-pipeline"><span class="avatar avatar-photo sofia"></span><span><strong>Sofia Martinez</strong><small>Ready 3+ years</small></span></div><span class="badge coral">Coverage risk</span></div></div>`;
   const content = { bell: bellCurve, ninebox: nineBox, succession }[state.talentTab];
-  return `${pageHeading(manager ? "Team talent planning" : "Organization talent planning", "Talent insights", "Explore calibrated performance distribution, potential, and succession coverage in one decision workspace.", `<button class="button">${icon("download")} Export view</button><button class="button primary" data-nav="people">${icon("users")} Open calibration</button>`)}<article class="card talent-workspace"><div class="insight-tabs">${tabs.map(([id, glyph, label]) => `<button class="tab ${state.talentTab === id ? "active" : ""}" data-talent-tab="${id}">${icon(glyph)} ${label}</button>`).join("")}</div><div class="talent-panel">${content}</div></article>`;
-}
-
-let talentCubeCleanup = null;
-
-function initTalentCube() {
-  const container = document.querySelector("#talentCube");
-  if (!container || !window.THREE) return null;
-  const model = thirdAxisModels[state.thirdAxis] || thirdAxisModels.readiness;
-  const layers = model[state.role === "manager" ? "team" : "org"];
-  const width = Math.max(container.clientWidth, 280);
-  const height = Math.max(container.clientHeight, 320);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(width, height, false);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.domElement.setAttribute("aria-hidden", "true");
-  container.prepend(renderer.domElement);
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf3f7f4);
-  const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-  camera.position.set(4.6, 3.5, 5.5);
-  camera.lookAt(0, 0.08, 0);
-  const group = new THREE.Group();
-  group.rotation.set(-0.32, -0.62, 0.04);
-  scene.add(group);
-
-  const cubeGeometry = new THREE.BoxGeometry(0.78, 0.78, 0.78);
-  const edgeGeometry = new THREE.EdgesGeometry(cubeGeometry);
-  const materials = [];
-  const meshes = [];
-  const maxCount = Math.max(...layers.flat(), 1);
-  layers.forEach((counts, layerIndex) => counts.forEach((count, cellIndex) => {
-    const selected = layerIndex === state.thirdLayer;
-    const color = new THREE.Color(model.colors[layerIndex]);
-    color.offsetHSL(0, 0, count ? -(count / maxCount) * 0.08 : 0.08);
-    const material = new THREE.MeshStandardMaterial({
-      color,
-      transparent: true,
-      opacity: selected ? (count ? 0.92 : 0.2) : (count ? 0.27 : 0.07),
-      roughness: 0.62,
-      metalness: 0.02,
-      depthWrite: selected,
-    });
-    materials.push(material);
-    const cube = new THREE.Mesh(cubeGeometry, material);
-    cube.position.set((cellIndex % 3 - 1) * 1.02, (1 - Math.floor(cellIndex / 3)) * 1.02, (layerIndex - 1) * 1.02);
-    const scale = 0.88 + count / maxCount * 0.12;
-    cube.scale.setScalar(selected ? scale : scale * 0.94);
-    cube.userData.layer = layerIndex;
-    group.add(cube);
-    meshes.push(cube);
-    const edgeMaterial = new THREE.LineBasicMaterial({ color: selected ? 0x294a3c : 0x91a49a, transparent: true, opacity: selected ? 0.58 : 0.22 });
-    materials.push(edgeMaterial);
-    const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
-    cube.add(edges);
-  }));
-
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x8aa497, 2.1));
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-  keyLight.position.set(4, 7, 5);
-  scene.add(keyLight);
-  const fillLight = new THREE.DirectionalLight(0xd7ef74, 1.1);
-  fillLight.position.set(-5, -2, 3);
-  scene.add(fillLight);
-
-  let animationFrame;
-  let dragging = false;
-  let moved = false;
-  let previousX = 0;
-  let previousY = 0;
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const raycaster = new THREE.Raycaster();
-  const pointer = new THREE.Vector2();
-
-  const renderFrame = () => {
-    if (!reducedMotion && !dragging) group.rotation.y += 0.0012;
-    renderer.render(scene, camera);
-    animationFrame = requestAnimationFrame(renderFrame);
-  };
-  const resize = () => {
-    const nextWidth = Math.max(container.clientWidth, 280);
-    const nextHeight = Math.max(container.clientHeight, 320);
-    camera.aspect = nextWidth / nextHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(nextWidth, nextHeight, false);
-  };
-  const pointerDown = event => {
-    dragging = true;
-    moved = false;
-    previousX = event.clientX;
-    previousY = event.clientY;
-    renderer.domElement.setPointerCapture(event.pointerId);
-  };
-  const pointerMove = event => {
-    if (!dragging) return;
-    const deltaX = event.clientX - previousX;
-    const deltaY = event.clientY - previousY;
-    if (Math.abs(deltaX) + Math.abs(deltaY) > 2) moved = true;
-    group.rotation.y += deltaX * 0.008;
-    group.rotation.x = Math.max(-1.1, Math.min(0.65, group.rotation.x + deltaY * 0.008));
-    previousX = event.clientX;
-    previousY = event.clientY;
-  };
-  const pointerUp = event => {
-    dragging = false;
-    if (moved) return;
-    const bounds = renderer.domElement.getBoundingClientRect();
-    pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
-    raycaster.setFromCamera(pointer, camera);
-    const selectedCube = raycaster.intersectObjects(meshes, false)[0]?.object;
-    if (selectedCube && selectedCube.userData.layer !== state.thirdLayer) {
-      state.thirdLayer = selectedCube.userData.layer;
-      render();
-    }
-  };
-  const pointerCancel = () => {
-    dragging = false;
-  };
-  const wheel = event => {
-    event.preventDefault();
-    camera.fov = Math.max(32, Math.min(58, camera.fov + Math.sign(event.deltaY) * 2));
-    camera.updateProjectionMatrix();
-  };
-  renderer.domElement.addEventListener("pointerdown", pointerDown);
-  renderer.domElement.addEventListener("pointermove", pointerMove);
-  renderer.domElement.addEventListener("pointerup", pointerUp);
-  renderer.domElement.addEventListener("pointercancel", pointerCancel);
-  renderer.domElement.addEventListener("wheel", wheel, { passive: false });
-  const resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(container);
-  renderFrame();
-
-  return () => {
-    cancelAnimationFrame(animationFrame);
-    resizeObserver.disconnect();
-    renderer.domElement.removeEventListener("pointerdown", pointerDown);
-    renderer.domElement.removeEventListener("pointermove", pointerMove);
-    renderer.domElement.removeEventListener("pointerup", pointerUp);
-    renderer.domElement.removeEventListener("pointercancel", pointerCancel);
-    renderer.domElement.removeEventListener("wheel", wheel, { passive: false });
-    cubeGeometry.dispose();
-    edgeGeometry.dispose();
-    materials.forEach(material => material.dispose());
-    renderer.dispose();
-  };
+  return `${pageHeading(manager ? "Team talent planning" : "Organization talent planning", manager ? "Team talent insights" : "Talent insights", manager ? "Review calibrated performance, potential, and succession coverage for your direct reports." : "Explore calibrated performance distribution, potential, and succession coverage across the organization.", `<button class="button">${icon("download")} Export view</button><button class="button primary" data-nav="people">${icon("users")} Open calibration</button>`)}<article class="card talent-workspace"><div class="insight-tabs">${tabs.map(([id, glyph, label]) => `<button class="tab ${state.talentTab === id ? "active" : ""}" data-talent-tab="${id}">${icon(glyph)} ${label}</button>`).join("")}</div><div class="talent-panel">${content}</div></article>`;
 }
 
 function employeeHistoryScreen() {
@@ -518,20 +299,17 @@ function developmentScreen() {
 }
 
 function render() {
-  talentCubeCleanup?.();
-  talentCubeCleanup = null;
   const roleViews = new Set(navByRole[state.role].map(([id]) => id));
   if (!roleViews.has(state.view) && !(state.view === "employee" && state.role !== "employee")) state.view = "overview";
   renderNav();
   document.querySelector("#globalLaunchButton").hidden = state.role !== "hr";
-  document.querySelector(".cycle-chip").lastChild.textContent = state.role === "employee" ? "My FY26 Review" : "FY26 Annual Review";
+  document.querySelector(".cycle-chip").lastChild.textContent = state.role === "employee" ? "My FY26 Review" : state.role === "manager" ? "My team · FY26 Review" : "Organization · FY26 Review";
   const views = { overview: overviewScreen, cycles: cyclesScreen, people: peopleScreen, employee: employeeDetailScreen, talent: talentInsightsScreen, actions: actionsScreen, approvals: approvalsScreen, history: employeeHistoryScreen, development: developmentScreen };
   app.innerHTML = `<div class="page-enter">${(views[state.view] || overviewScreen)()}</div>`;
-  const labels = { overview: state.role === "employee" ? "My performance" : "Overview", cycles: "Review cycles", people: state.role === "manager" ? "My team" : "People & calibration", employee: "Appraisal details", talent: "Talent insights", actions: "Actions & rewards", approvals: "Approvals", history: "Performance history", development: "Goals & development" };
+  const labels = { overview: state.role === "employee" ? "My performance" : state.role === "manager" ? "Team overview" : "Overview", cycles: "Review cycles", people: state.role === "manager" ? "My team" : "People & calibration", employee: state.role === "manager" ? "Team member appraisal" : "Appraisal review", talent: state.role === "manager" ? "Team talent insights" : "Talent insights", actions: state.role === "manager" ? "Team recommendations" : "Actions & rewards", approvals: state.role === "manager" ? "My approvals" : "Approvals", history: "Performance history", development: "Goals & development" };
   document.querySelector("#pageCrumb").textContent = labels[state.view];
   document.querySelector(".sidebar").classList.remove("open");
   refreshIcons();
-  if (document.querySelector("#talentCube")) talentCubeCleanup = initTalentCube();
 }
 
 function showToast(message) {
@@ -607,12 +385,6 @@ document.addEventListener("click", event => {
     render();
     return;
   }
-  const thirdLayer = event.target.closest("[data-third-layer]");
-  if (thirdLayer) {
-    state.thirdLayer = Number(thirdLayer.dataset.thirdLayer);
-    render();
-    return;
-  }
   const actionTarget = event.target.closest("[data-action]");
   if (!actionTarget) return;
   const action = actionTarget.dataset.action;
@@ -631,18 +403,7 @@ document.addEventListener("click", event => {
   if (action === "approve") { state.approved.add(actionTarget.dataset.id); render(); showToast("Decision approved and routed to the next level"); }
   if (action === "reject") showToast("Decision returned to the manager with comments");
   if (action === "cycle-details") showToast("Cycle workspace opened");
-  if (action === "reset-cube") {
-    talentCubeCleanup?.();
-    talentCubeCleanup = initTalentCube();
-  }
   if (["self-review","add-goal","enroll","open-guide"].includes(action)) showToast(action === "enroll" ? "Enrollment request sent to your manager" : "Prototype action completed");
-});
-
-document.addEventListener("change", event => {
-  if (event.target.id !== "thirdAxisSelect") return;
-  state.thirdAxis = event.target.value;
-  state.thirdLayer = 2;
-  render();
 });
 
 document.addEventListener("input", event => {
