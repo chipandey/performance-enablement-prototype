@@ -3,7 +3,7 @@ const state = {
   view: "overview",
   selectedEmployee: "priya",
   insightTab: "goals",
-  talentTab: "bell",
+  talentTab: "ninebox",
   peopleQuery: "",
   launched: false,
   approved: new Set(),
@@ -23,14 +23,14 @@ const navByRole = {
     ["overview", "layout-dashboard", "Overview"],
     ["cycles", "repeat-2", "Review cycles", "3"],
     ["people", "users-round", "People & calibration", "12"],
-    ["talent", "chart-scatter", "Talent insights"],
+    ["talent", "grid-3x3", "9-box talent matrix"],
     ["actions", "badge-dollar-sign", "Actions & rewards"],
     ["approvals", "git-pull-request-arrow", "Approvals", "4"],
   ],
   manager: [
     ["overview", "layout-dashboard", "Team overview"],
     ["people", "users-round", "My team", "8"],
-    ["talent", "chart-scatter", "Team talent insights"],
+    ["talent", "grid-3x3", "Team 9-box matrix"],
     ["actions", "list-checks", "Team recommendations"],
     ["approvals", "git-pull-request-arrow", "My approvals", "2"],
   ],
@@ -368,6 +368,7 @@ document.addEventListener("click", event => {
     event.preventDefault();
     closeModal();
     state.view = navTarget.dataset.nav;
+    if (state.view === "talent") state.talentTab = "ninebox";
     render();
     app.focus();
     return;
