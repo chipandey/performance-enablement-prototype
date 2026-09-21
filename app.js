@@ -41,6 +41,12 @@ const navByRole = {
   ],
 };
 
+const workspaceLabels = {
+  hr: "HR manager workspaces",
+  manager: "Manager workspaces",
+  employee: "Employee workspaces",
+};
+
 const app = document.querySelector("#app");
 const nav = document.querySelector("#mainNav");
 const roleSelect = document.querySelector("#roleSelect");
@@ -54,7 +60,7 @@ function refreshIcons() {
 }
 
 function renderNav() {
-  nav.innerHTML = `<div class="nav-label">Workspace</div>` + navByRole[state.role].map(([id, glyph, label, count]) => `
+  nav.innerHTML = `<div class="nav-label">${workspaceLabels[state.role]}</div>` + navByRole[state.role].map(([id, glyph, label, count]) => `
     <button class="nav-item ${state.view === id || (state.view === "employee" && id === "people") ? "active" : ""}" data-nav="${id}">
       ${icon(glyph)}<span>${label}</span>${count ? `<span class="nav-count">${count}</span>` : ""}
     </button>`).join("");
@@ -429,9 +435,9 @@ roleSelect.addEventListener("change", event => {
   state.role = event.target.value;
   state.view = "overview";
   const identities = {
-    hr: { name: "Alex Morgan", title: "HR Business Partner", className: "avatar avatar-photo alex", initials: "" },
+    hr: { name: "Alex Morgan", title: "HR Manager", className: "avatar avatar-photo alex", initials: "" },
     manager: { name: "Jordan Lee", title: "People Manager", className: "avatar", initials: "JL" },
-    employee: { name: "Priya Nair", title: "Employee", className: "avatar avatar-photo priya", initials: "" },
+    employee: { name: "Priya Nair", title: "Individual Contributor", className: "avatar avatar-photo priya", initials: "" },
   };
   const identity = identities[state.role];
   const signedInAvatar = document.querySelector(".signed-in .avatar");
