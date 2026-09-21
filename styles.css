@@ -310,10 +310,10 @@ tbody tr[data-employee]:hover { background: #f8fbf8; }
 .insight-metric-grid strong { margin: 5px 0 2px; font: 800 18px "Manrope", sans-serif; }
 .insight-metric-grid small { color: var(--muted); font-size: 9px; line-height: 1.35; }
 .histogram { height: 300px; padding: 18px 12px 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; align-items: end; border-bottom: 1px solid #bfc9c1; background: repeating-linear-gradient(to top, transparent 0, transparent 59px, #edf0ed 60px); }
-.histogram-column { height: 100%; display: grid; grid-template-rows: 18px 1fr 42px; align-items: end; text-align: center; }
-.histogram-column > span { width: min(72px, 75%); min-height: 8px; margin: 0 auto; background: var(--forest); border-radius: 5px 5px 0 0; }
+.histogram-column { height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) 24px 48px; align-items: end; text-align: center; }
+.histogram-column > span { width: min(72px, 75%); min-height: 8px; margin: 0 auto; align-self: end; background: var(--forest); border-radius: 5px 5px 0 0; }
 .histogram-column.target > span { background: var(--lime); border: 1px solid #b4ca51; }
-.histogram-column strong { align-self: start; font: 800 12px "Manrope", sans-serif; }
+.histogram-column strong { align-self: center; font: 800 12px "Manrope", sans-serif; }
 .histogram-column strong em { margin-left: 3px; color: var(--muted); font-size: 9px; font-style: normal; font-weight: 600; }
 .histogram-column small { align-self: center; color: var(--muted); font-size: 10px; }
 .chart-note { margin-top: 20px; padding: 12px; display: flex; align-items: center; gap: 9px; color: #315c49; background: #eff8f2; border-radius: 6px; font-size: 12px; }
